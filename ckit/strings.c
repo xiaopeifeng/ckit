@@ -6,7 +6,7 @@
 #define ERROR_BUFSIZE 64
 __thread char tls_error_buf[ERROR_BUFSIZE];
 
-const char* ckit_error(int err_code) {
+const char *ckit_error(int err_code) {
   int n = strerror_r(err_code, tls_error_buf, ERROR_BUFSIZE);
   if (n == 0) {
     return tls_error_buf;
@@ -16,10 +16,9 @@ const char* ckit_error(int err_code) {
   }
 }
 
-void strip_newline(char* src, int len) {
+void strip_newline(char *src, int len) {
   while (len > 0) {
     if (src[len - 1] == '\n') src[len - 1] = '\0';
     len--;
   }
 }
-

@@ -5,9 +5,8 @@
 #include <string.h>
 #include <errno.h>
 
-
-int ik_execute_cmd(const char* cmd, char** results) {
-  FILE* fp = NULL;
+int ik_execute_cmd(const char *cmd, char **results) {
+  FILE *fp = NULL;
 
   if (cmd == NULL) {
     return -1;
@@ -32,11 +31,12 @@ int ik_execute_cmd(const char* cmd, char** results) {
     len = fread(buf, sizeof(char), 1024, fp);
     if (len > 0) {
       if (!results) {
-        // drain the pipe out, or subprocess will generate echo pipe write error
+        // drain the pipe out, or subprocess will generate echo pipe
+        // write error
         continue;
       }
 
-      *results = (char*)realloc(*results, result_len + len + 1);
+      *results = (char *)realloc(*results, result_len + len + 1);
       memcpy(*results + result_len, buf, len);
       result_len = result_len + len;
     }
@@ -57,4 +57,3 @@ int ik_execute_cmd(const char* cmd, char** results) {
 
   return WEXITSTATUS(pclose(fp));
 }
-

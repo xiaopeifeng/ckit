@@ -7,9 +7,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-
-uint8_t* read_whole_file(const char* path, uint32_t* len) {
-  FILE* fp = fopen(path, "rb");
+uint8_t *read_whole_file(const char *path, uint32_t *len) {
+  FILE *fp = fopen(path, "rb");
   if (!fp) {
     return NULL;
   }
@@ -18,7 +17,7 @@ uint8_t* read_whole_file(const char* path, uint32_t* len) {
   long fsize = ftell(fp);
   fseek(fp, 0, SEEK_SET);
 
-  uint8_t* cont = malloc(fsize + 1);
+  uint8_t *cont = malloc(fsize + 1);
   cont[fsize] = '\0';
   size_t rlen = fread(cont, 1, fsize, fp);
   if (rlen != fsize) {
@@ -38,8 +37,8 @@ uint8_t* read_whole_file(const char* path, uint32_t* len) {
   return cont;
 }
 
-bool write_file(const char* path, uint8_t* cont, uint32_t len) {
-  FILE* fp = fopen(path, "w");
+bool write_file(const char *path, uint8_t *cont, uint32_t len) {
+  FILE *fp = fopen(path, "w");
   if (!fp) {
     return false;
   }
@@ -53,7 +52,7 @@ bool write_file(const char* path, uint8_t* cont, uint32_t len) {
   return true;
 }
 
-bool write_filefd(int fd, uint8_t* cont, uint32_t len) {
+bool write_filefd(int fd, uint8_t *cont, uint32_t len) {
   uint32_t written = 0;
 
   while (written < len) {
@@ -73,9 +72,9 @@ bool write_filefd(int fd, uint8_t* cont, uint32_t len) {
   return true;
 }
 
-bool recurive_mkdir(const char* dir) {
+bool recurive_mkdir(const char *dir) {
   char tmp[256];
-  char* p = NULL;
+  char *p = NULL;
   size_t len;
 
   snprintf(tmp, sizeof(tmp), "%s", dir);
@@ -100,4 +99,3 @@ bool recurive_mkdir(const char* dir) {
     return false;
   }
 }
-
