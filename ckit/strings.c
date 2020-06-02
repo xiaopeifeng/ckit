@@ -15,3 +15,11 @@ const char* ckit_error(int err_code) {
     return tls_error_buf;
   }
 }
+
+void strip_newline(char* src, int len) {
+  while (len > 0) {
+    if (src[len - 1] == '\n') src[len - 1] = '\0';
+    len--;
+  }
+}
+

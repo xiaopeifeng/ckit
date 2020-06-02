@@ -3,4 +3,6 @@
 
 const char* ckit_error(int err_code);
 
+void strip_newline(char* src, int len);
+
 #endif
