@@ -7,6 +7,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <fcntl.h>
+
 uint8_t *read_whole_file(const char *path, uint32_t *len) {
   FILE *fp = fopen(path, "rb");
   if (!fp) {
@@ -98,4 +100,84 @@ bool recurive_mkdir(const char *dir) {
   } else {
     return false;
   }
+}
+
+int create_pidfile(const char *pid_file) {
+  struct flock fl;
+  char pidstr[32];
+  int pid_file_fd = -1;
+
+  fl.l_type = F_WRLCK;
+  fl.l_whence = SEEK_SET;
+  fl.l_start = 0;
+  fl.l_len = 0;  // lock whole file
+  fl.l_pid = getpid();
+
+  pid_file_fd = open(pid_file, O_CREAT | O_WRONLY, 0666);
+  if (pid_file_fd < 0) {
+    printf("create pid file failed, %s", strerror(errno));
+    return -1;
+  }
+
+  int flags = fcntl(pid_file_fd, F_GETFL, 0);
+  fcntl(pid_file_fd, F_SETFL, flags | FD_CLOEXEC);
+
+  if (fcntl(pid_file_fd, F_SETLK, &fl) < 0) {
+    close(pid_file_fd);
+    pid_file_fd = -1;
+    return -1;
+  }
+
+  snprintf(pidstr, sizeof(pidstr), "%d", fl.l_pid);
+  if (!write_filefd(pid_file_fd, (uint8_t *)pidstr, strlen(pidstr))) {
+    close(pid_file_fd);
+    pid_file_fd = -1;
+    return -1;
+  }
+
+  fsync(pid_file_fd);
+
+  return pid_file_fd;
+}
+
+bool delete_pidfile(const char *pid_file, int pid_file_fd) {
+  struct flock fl;
+
+  if (pid_file_fd < 0) {
+    return false;
+  }
+
+  fl.l_type = F_UNLCK;  // unlock
+  fl.l_whence = SEEK_SET;
+  fl.l_start = 0;
+  fl.l_len = 0;
+  fl.l_pid = getpid();
+
+  if (fcntl(pid_file_fd, F_SETLK, &fl) < 0) {
+    printf("unlock pid file failed, %s", strerror(errno));
+  }
+
+  close(pid_file_fd);
+  remove(pid_file);
+  pid_file_fd = -1;
+
+  return true;
+}
+
+pid_t read_pidfile(const char *pid_file) {
+  if (access(pid_file, F_OK) != 0) {
+    return 0;
+  }
+
+  FILE *fp = fopen(pid_file, "rb");
+  if (!fp) {
+    return 0;
+  }
+
+  char pidstr[8];
+  memset(pidstr, 0, sizeof(pidstr));
+  fread(pidstr, 1, sizeof(pidstr), fp);
+  fclose(fp);
+
+  return strtoul(pidstr, NULL, 10);
 }
